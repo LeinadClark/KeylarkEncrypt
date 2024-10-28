@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Encryption Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" type="image/x-icon" href="logo.png" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>File Encryption Tool</h1>
+        
+        <h2>Encrypt File</h2>
+        <input type="file" id="fileInput" accept=".txt" />
+        <button id="encryptButton">Encrypt File</button>
+        <p id="encryptOutput"></p>
+        
+        <h2>Decrypt File</h2>
+        <input type="file" id="encryptedFileInput" accept=".txt" />
+        <button id="decryptButton">Decrypt File</button>
+        <p id="decryptOutput"></p>
+    </div>
+
+    <py-script>
+        import base64
+        from pyscript import Element, js
+
+        def encrypt_file(data):
+            # Simple XOR encryption for demonstration purposes
+            key = b'secret'  # Fixed key for simplicity
+            encrypted = bytearray()
+            for i in range(len(data)):
+                encrypted.append(data[i] ^ key[i % len(key)])
+            return base64.b64encode(encrypted).decode('utf-8')
+
+        def decrypt_file(encrypted_data):
+            encrypted_data = base64.b64decode(encrypted_data)
+            key = b'secret'  # Same fixed key for decryption
+            decrypted = bytearray()
+            for i in range(len(encrypted_data)):
+                decrypted.append(encrypted_data[i] ^ key[i % len(key)])
+            return decrypted
+
+        def download_file(content, filename):
+            """Trigger a download of the content as a file."""
+            blob = js.Blob([content], {'type': 'text/plain'})
+            url = js.URL.createObjectURL(blob)
+            a = js.document.createElement('a')
+            a.href = url
+            a.download = filename
+            js.document.body.appendChild(a)
+            a.click()
+            js.document.body.removeChild(a)
+
+        def handle_encrypt(event):
+            file_input = Element("fileInput")
+            encrypt_output = Element("encryptOutput")
+
+            if not file_input.files:
+                encrypt_output.element.innerHTML = "No file selected."
+                return
+
+            file = file_input.files[0]
+
+            reader = js.FileReader.new()
+            reader.onload = lambda e: on_encrypt_load(e, encrypt_output)
+            reader.readAsText(file)
+
+        def on_encrypt_load(event, encrypt_output):
+            data = event.target.result.encode('utf-8')
+            encrypted_data = encrypt_file(data)
+            download_file(encrypted_data, "encrypted_file.txt")
+            encrypt_output.element.innerHTML = "File encrypted and downloaded!"
+
+        def handle_decrypt(event):
+            encrypted_file_input = Element("encryptedFileInput")
+            decrypt_output = Element("decryptOutput")
+
+            if not encrypted_file_input.files:
+                decrypt_output.element.innerHTML = "No encrypted file selected."
+                return
+
+            encrypted_file = encrypted_file_input.files[0]
+
+            reader = js.FileReader.new()
+            reader.onload = lambda e: on_file_load(e, decrypt_output)
+            reader.readAsText(encrypted_file)
+
+        def on_file_load(event, decrypt_output):
+            encrypted_data = event.target.result
+            decrypted_data = decrypt_file(encrypted_data)
+            decrypt_output.element.innerHTML = "Decrypted Data: " + decrypted_data.decode()
+
+        # Bind buttons to functions
+        Element("encryptButton").element.onclick = handle_encrypt
+        Element("decryptButton").element.onclick = handle_decrypt
+    </py-script>
+</body>
+</html>

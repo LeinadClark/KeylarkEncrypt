@@ -1,0 +1,6 @@
+This is a sample document for testing the File Encryption Tool.
+The encryption method used here is XOR-based, which means the same key is used for both encryption and decryption.
+
+Feel free to edit this text and test the functionality of the encryption and decryption process.
+
+Have a great time encrypting and decrypting files!
